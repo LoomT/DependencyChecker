@@ -148,11 +148,29 @@ public class DependencyChecker {
                 classes.add(classNameReferenced);
             }
             for (LocalVariableNode localVariable : method.localVariables) {
-                System.out.println(localVariable.signature);
+                classes.addAll(splitSignature(localVariable.desc));
+                if(localVariable.signature != null)
+                    classes.addAll(splitSignature(localVariable.signature));
             }
         }
 
+        for (FieldNode field : classNode.fields) {
+            classes.addAll(splitSignature(field.desc));
+            if(field.signature != null)
+                classes.addAll(splitSignature(field.signature));
+        }
+
         return classes;
+    }
+
+    // split complex templates hopefully
+    private List<String> splitSignature(String signature) {
+        return Arrays.stream(signature.replace("[", "").split("[;<>]"))
+                .filter(t -> t.startsWith("L")) // filter for objects only
+                .map(t -> t.substring(1))
+                .map(t -> t.replace("/", "."))
+                .filter(t -> !isStandardLibraryClass(t))
+                .toList();
     }
 
     /**
