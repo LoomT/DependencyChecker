@@ -147,11 +147,16 @@ public class DependencyChecker {
 
                 classes.add(classNameReferenced);
             }
+            // add local variable signatures because generic classes only show their assigned type here
+            // if the generic class is never assigned, the bytecode does not have the assigned type it seems?
             for (LocalVariableNode localVariable : method.localVariables) {
                 classes.addAll(splitSignature(localVariable.desc));
                 if(localVariable.signature != null)
                     classes.addAll(splitSignature(localVariable.signature));
             }
+            // add method return type
+            classes.addAll(splitSignature(method.desc.substring(method.desc.indexOf(")") + 1)));
+
         }
 
         for (FieldNode field : classNode.fields) {
@@ -163,7 +168,11 @@ public class DependencyChecker {
         return classes;
     }
 
-    // split complex templates hopefully
+    /**
+     * Hopefully splits complex generic class types
+     * @param signature class type (not a function signature)
+     * @return list of non std classes
+     */
     private List<String> splitSignature(String signature) {
         return Arrays.stream(signature.replace("[", "").split("[;<>]"))
                 .filter(t -> t.startsWith("L")) // filter for objects only

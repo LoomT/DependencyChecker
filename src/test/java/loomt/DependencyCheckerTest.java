@@ -130,4 +130,52 @@ class DependencyCheckerTest {
         assertTrue(checker.checkDependencies("com.jetbrains.internship2024.ClassBTemplate",
                 List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")));
     }
+
+    @Test
+    void templateComplexNoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.ClassBComplexTemplate",
+                List.of(jarPath + "ModuleB-1.0.jar")));
+    }
+
+    @Test
+    void templateComplex() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.ClassBComplexTemplate",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")));
+    }
+
+    @Test
+    void exceptionThrowNoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.ClassBThrow",
+                List.of(jarPath + "ModuleB-1.0.jar")));
+    }
+
+    @Test
+    void exceptionThrow() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.ClassBThrow",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")));
+    }
+
+    @Test
+    void argumentNoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.ClassBArgument",
+                List.of(jarPath + "ModuleB-1.0.jar")));
+    }
+
+    @Test
+    void argument() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.ClassBArgument",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")));
+    }
+
+    @Test
+    void returnANoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.ClassBReturnA",
+                List.of(jarPath + "ModuleB-1.0.jar")));
+    }
+
+    @Test
+    void returnA() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.ClassBReturnA",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")));
+    }
 }
