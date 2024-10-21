@@ -1,5 +1,14 @@
 plugins {
     id("java")
+    application
+}
+
+application {
+    mainClass = "loomt.Main"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
 }
 
 group = "loomt"
@@ -23,13 +32,3 @@ tasks.test {
     dependsOn(":DependencyCheckerTests:ModuleA:jar", ":DependencyCheckerTests:ModuleB:jar")
     dependsOn(":processTestResources")
 }
-
-//tasks.named<ProcessResources>("processTestResources") {
-//    val jarFiles = (tasks.getByPath(":DependencyCheckerTests:ModuleA:jar").outputs.files)
-//        .plus(tasks.getByPath(":DependencyCheckerTests:ModuleB:jar").outputs.files)
-//    println(jarFiles.forEach { t -> t.toString() })
-//    inputs.files(jarFiles)
-//    from(jarFiles) {
-//        into("$rootDir/build/resources/testJars/")
-//    }
-//}
