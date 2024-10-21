@@ -11,8 +11,13 @@ import java.util.stream.Collectors;
 
 public class DependencyChecker {
 
-    public boolean checkDependencies(String mainClassNameWithDots, List<String> jarPaths) throws Exception {
-        Set<String> availableClasses = new HashSet<>();
+    /**
+     * @param mainClassName name of main class
+     * @param jarPaths paths to jar files
+     * @return string optional of missing class name or empty otherwise
+     * @throws IOException if an I/O error has occurred while reading jar files
+     */
+    public Optional<String> checkDependencies(String mainClassName, List<String> jarPaths) throws IOException {
         Set<String> referencedClasses = new HashSet<>();
 
         List<File> jarFiles = new ArrayList<>();
@@ -23,11 +28,11 @@ public class DependencyChecker {
                 throw new IOException("JAR file not found: " + jarPath);
             }
             jarFiles.add(jarFile);
-            availableClasses.addAll(getClassesFromJar(jarFile));
         }
 
         Stack<String> classesToCheck = new Stack<>();
-        classesToCheck.add(mainClassNameWithDots);
+        classesToCheck.add(mainClassName);
+        referencedClasses.add(mainClassName);
 
         while (!classesToCheck.isEmpty()) {
             String className = classesToCheck.pop();
@@ -45,21 +50,12 @@ public class DependencyChecker {
                     break;
                 }
             }
-            if(!classFound) {
-                System.err.println("Class not found: " + className);
-                return false;
+            if (!classFound) {
+                return Optional.of(className);
             }
         }
 
-        // check if all referenced classes are available
-        for (String refClass : referencedClasses) {
-            if (!availableClasses.contains(refClass)) {
-                System.err.println("Missing dependency: " + refClass);
-                return false;
-            }
-        }
-
-        return true;
+        return Optional.empty();
     }
 
     /**
@@ -107,10 +103,10 @@ public class DependencyChecker {
     private Set<String> getReferencedClassesFromClass(ClassNode classNode) {
         Set<String> classes = new HashSet<>();
         for (MethodNode method : classNode.methods) {
-            System.out.println(method.name);
+//            System.out.println(method.name);
             for (AbstractInsnNode insn : method.instructions) {
                 String classNameReferenced;
-                System.out.println(insn.getOpcode());
+//                System.out.println(insn.getOpcode());
 
                 // check for instantiation, cast, or instanceof operations
                 if (insn.getOpcode() == Opcodes.NEW || insn.getOpcode() == Opcodes.ANEWARRAY
