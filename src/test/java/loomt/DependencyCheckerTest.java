@@ -306,4 +306,16 @@ class DependencyCheckerTest {
         assertTrue(checker.checkDependencies("com.jetbrains.internship2024.ImplementsA",
                 List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
     }
+
+    @Test
+    void extendsANoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.ExtendsA",
+                List.of(jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void extendsA() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.ExtendsA",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
 }
