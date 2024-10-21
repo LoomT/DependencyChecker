@@ -1,12 +1,14 @@
 package loomt;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 public class Main {
     public static void main(String[] args) {
-        if (args.length < 2) {
-            System.out.println("Usage: java DependencyChecker <main-class> <jar-paths>");
+        if (args.length < 2 || (args[0].equals("--help") || args[0].equals("-h"))) {
+            System.out.println("Usage: DependencyChecker <main-class> [<jar-path>]+");
+            System.out.println("Example: ./DependencyChecker \"com.name.class\" \"moduleA\" \"moduleB\" \"moduleC\"");
             return;
         }
 
@@ -20,9 +22,8 @@ public class Main {
             } else {
                 System.out.println("Class not found: " + missingClass.get());
             }
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
-            e.printStackTrace();
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
         }
     }
 }
