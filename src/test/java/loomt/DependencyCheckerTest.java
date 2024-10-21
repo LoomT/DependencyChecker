@@ -178,4 +178,64 @@ class DependencyCheckerTest {
         assertTrue(checker.checkDependencies("com.jetbrains.internship2024.ClassBReturnA",
                 List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
     }
+
+    @Test
+    void constructorAnnotationNoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.annotations.Constructor",
+                List.of(jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void constructorAnnotation() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.annotations.Constructor",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void classAnnotationNoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.annotations.Class",
+                List.of(jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void classAnnotation() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.annotations.Class",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void classTypeParameterAnnotationNoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.annotations.ClassTypeParameter",
+                List.of(jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void classTypeParameterAnnotation() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.annotations.ClassTypeParameter",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void fieldAnnotationNoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.annotations.Field",
+                List.of(jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void fieldAnnotation() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.annotations.Field",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void packageAnnotationNoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.annotations.package-info",
+                List.of(jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void packageAnnotation() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.annotations.package-info",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
 }

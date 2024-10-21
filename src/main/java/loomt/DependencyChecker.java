@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DependencyChecker {
 
@@ -59,21 +60,6 @@ public class DependencyChecker {
     }
 
     /**
-     * Get all available class names from a JAR file
-     * @param jarFile jar file
-     * @return set of class names
-     * @throws IOException if an I/O error has occurred
-     */
-    private Set<String> getClassesFromJar(File jarFile) throws IOException {
-        try (JarFile jar = new JarFile(jarFile)) {
-            return jar.stream()
-                    .filter(e -> e.getName().endsWith(".class"))
-                    .map(e -> e.getName().replace(".class", "").replace("/", "."))
-                    .collect(Collectors.toSet());
-        }
-    }
-
-    /**
      * Get the ClassNode (ASM representation) from a JAR file for a specific class
      * @param jarFile jar file to search in
      * @param className class name
@@ -93,7 +79,6 @@ public class DependencyChecker {
         return null;
     }
 
-
     /**
      * Get all referenced classes from a given class file using ASM,
      * including static method calls, and ignore standard library classes
@@ -103,10 +88,8 @@ public class DependencyChecker {
     private Set<String> getReferencedClassesFromClass(ClassNode classNode) {
         Set<String> classes = new HashSet<>();
         for (MethodNode method : classNode.methods) {
-//            System.out.println(method.name);
             for (AbstractInsnNode insn : method.instructions) {
                 String classNameReferenced;
-//                System.out.println(insn.getOpcode());
 
                 // check for instantiation, cast, or instanceof operations
                 if (insn.getOpcode() == Opcodes.NEW || insn.getOpcode() == Opcodes.ANEWARRAY
@@ -138,9 +121,6 @@ public class DependencyChecker {
                 }
                 else continue;
 
-                if(isStandardLibraryClass(classNameReferenced))
-                    continue;
-
                 classes.add(classNameReferenced);
             }
             // add local variable signatures because generic classes only show their assigned type here
@@ -153,15 +133,74 @@ public class DependencyChecker {
             // add method return type
             classes.addAll(splitSignature(method.desc.substring(method.desc.indexOf(")") + 1)));
 
+            // extract method, its parameters and local variables annotations
+            classes.addAll(getAnnotations(method));
         }
 
         for (FieldNode field : classNode.fields) {
             classes.addAll(splitSignature(field.desc));
             if(field.signature != null)
                 classes.addAll(splitSignature(field.signature));
+            classes.addAll(getAnnotations(field));
         }
 
-        return classes;
+        // add classes annotations
+        classes.addAll(getAnnotations(classNode));
+
+        // filter out std classes
+        return classes.stream().filter(this::isNotStandardLibraryClass).collect(Collectors.toSet());
+    }
+
+    private Set<String> getAnnotations(MethodNode method) {
+        List<AnnotationNode> annotations =
+                getBasicAnnotations(method.visibleAnnotations, method.invisibleAnnotations,
+                        method.visibleTypeAnnotations, method.invisibleTypeAnnotations);
+        if (method.visibleParameterAnnotations != null)
+            for (List<AnnotationNode> parameterAnnotations : method.visibleParameterAnnotations)
+                if(parameterAnnotations != null)
+                    annotations.addAll(parameterAnnotations);
+        if (method.invisibleParameterAnnotations != null)
+            for (List<AnnotationNode> parameterAnnotations : method.invisibleParameterAnnotations)
+                if(parameterAnnotations != null)
+                    annotations.addAll(parameterAnnotations);
+        if (method.visibleLocalVariableAnnotations != null)
+            annotations.addAll(method.visibleLocalVariableAnnotations);
+        if (method.invisibleLocalVariableAnnotations != null)
+            annotations.addAll(method.invisibleLocalVariableAnnotations);
+        return annotations.stream()
+                .map(a -> a.desc.substring(1, a.desc.length() - 1).replace("/", "."))
+                .collect(Collectors.toSet());
+    }
+
+    private Set<String> getAnnotations(FieldNode field) {
+        List<AnnotationNode> annotations =
+                getBasicAnnotations(field.visibleAnnotations, field.invisibleAnnotations,
+                        field.visibleTypeAnnotations, field.invisibleTypeAnnotations);
+        return annotations.stream()
+                .map(a -> a.desc.substring(1, a.desc.length() - 1).replace("/", "."))
+                .collect(Collectors.toSet());
+    }
+
+    private Set<String> getAnnotations(ClassNode classNode) {
+        List<AnnotationNode> annotations =
+                getBasicAnnotations(classNode.visibleAnnotations, classNode.invisibleAnnotations,
+                        classNode.visibleTypeAnnotations, classNode.invisibleTypeAnnotations);
+        return annotations.stream()
+                .map(a -> a.desc.substring(1, a.desc.length() - 1).replace("/", "."))
+                .collect(Collectors.toSet());
+    }
+
+    private List<AnnotationNode> getBasicAnnotations(List<AnnotationNode> visibleAnnotations, List<AnnotationNode> invisibleAnnotations, List<TypeAnnotationNode> visibleTypeAnnotations, List<TypeAnnotationNode> invisibleTypeAnnotations) {
+        List<AnnotationNode> annotations = new ArrayList<>();
+        if (visibleAnnotations != null)
+            annotations.addAll(visibleAnnotations);
+        if (invisibleAnnotations != null)
+            annotations.addAll(invisibleAnnotations);
+        if (visibleTypeAnnotations != null)
+            annotations.addAll(visibleTypeAnnotations);
+        if (invisibleTypeAnnotations != null)
+            annotations.addAll(invisibleTypeAnnotations);
+        return annotations;
     }
 
     /**
@@ -174,7 +213,6 @@ public class DependencyChecker {
                 .filter(t -> t.startsWith("L")) // filter for objects only
                 .map(t -> t.substring(1))
                 .map(t -> t.replace("/", "."))
-                .filter(t -> !isStandardLibraryClass(t))
                 .toList();
     }
 
@@ -194,11 +232,7 @@ public class DependencyChecker {
      * @param className class name to check
      * @return true iff the class belongs to the standard library
      */
-    private boolean isStandardLibraryClass(String className) {
-        return className.startsWith("java.") ||
-                className.startsWith("javax.") ||
-                className.startsWith("jdk.") ||
-                className.startsWith("sun.") ||    // classes from the sun package
-                className.startsWith("com.sun.");  // classes from com.sun package
+    private boolean isNotStandardLibraryClass(String className) {
+        return Stream.of("java.", "javax.", "jdk.", "sun.", "com.sun.").noneMatch(className::startsWith);
     }
 }
