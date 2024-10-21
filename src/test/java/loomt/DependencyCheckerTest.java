@@ -3,6 +3,7 @@ package loomt;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,6 +17,19 @@ class DependencyCheckerTest {
         checker = new DependencyChecker();
     }
 
+    @Test
+    void mainClassNotFound() throws IOException {
+        assertEquals("com.jetbrains.internship2024.OnePiece",
+                checker.checkDependencies("com.jetbrains.internship2024.OnePiece",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).get());
+    }
+
+    @Test
+    void fileNotFound() {
+        assertThrows(IOException.class,
+                () -> checker.checkDependencies("com.jetbrains.internship2024.ClassA",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleC-1.0.jar")));
+    }
 
     @Test
     void simpleMissingDependency() throws Exception {
@@ -236,6 +250,60 @@ class DependencyCheckerTest {
     @Test
     void packageAnnotation() throws Exception {
         assertTrue(checker.checkDependencies("com.jetbrains.internship2024.annotations.package-info",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void hasRecordANoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.record.HasRecordA",
+                List.of(jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void hasRecordA() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.record.HasRecordA",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void hasRecordBNoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.record.HasRecordB",
+                List.of(jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void hasRecordB() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.record.HasRecordB",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void recordBNoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.record.RecordB",
+                List.of(jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void recordB() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.record.RecordB",
+                List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void InterfaceA() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.InterfaceA",
+                List.of(jarPath + "ModuleA-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void implementsANoDependency() throws Exception {
+        assertFalse(checker.checkDependencies("com.jetbrains.internship2024.ImplementsA",
+                List.of(jarPath + "ModuleB-1.0.jar")).isEmpty());
+    }
+
+    @Test
+    void implementsA() throws Exception {
+        assertTrue(checker.checkDependencies("com.jetbrains.internship2024.ImplementsA",
                 List.of(jarPath + "ModuleA-1.0.jar", jarPath + "ModuleB-1.0.jar")).isEmpty());
     }
 }

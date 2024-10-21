@@ -35,6 +35,7 @@ public class DependencyChecker {
         classesToCheck.add(mainClassName);
         referencedClasses.add(mainClassName);
 
+        // BFS of class reference graph with one visitation per node
         while (!classesToCheck.isEmpty()) {
             String className = classesToCheck.pop();
             boolean classFound = false;
@@ -137,6 +138,8 @@ public class DependencyChecker {
             classes.addAll(getAnnotations(method));
         }
 
+        // add field signatures because generic classes only show their assigned type here
+        // also add their annotations
         for (FieldNode field : classNode.fields) {
             classes.addAll(splitSignature(field.desc));
             if(field.signature != null)
@@ -146,6 +149,9 @@ public class DependencyChecker {
 
         // add classes annotations
         classes.addAll(getAnnotations(classNode));
+
+        // add interfaces
+        classes.addAll(classNode.interfaces.stream().map(i -> i.replace("/", ".")).toList());
 
         // filter out std classes
         return classes.stream().filter(this::isNotStandardLibraryClass).collect(Collectors.toSet());
