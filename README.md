@@ -5,7 +5,8 @@ Assumes there is no binary incompatibilities, it only checks if referenced class
 
 ### Running from command line
 
-Build the application: `./gradlew installDist`, the executables will appear in build/install/DependencyChecker/bin directory
+Build the application: `./gradlew installDist`, the executables will appear in 
+[/build/install/DependencyChecker/bin](./build/install/DependencyChecker/bin) directory
 
 Usage: `DependencyChecker <main-class> [<jar-path>]+`
 
